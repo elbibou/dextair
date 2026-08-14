@@ -1,12 +1,13 @@
 (() => {
   const STORE = 'dextairBookingsV1';
+  const SIM_NOW = new Date('2037-05-31T12:00:00');
   const getDB = () => { try { return JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch { return {}; } };
   const put = r => { const db = getDB(); db[r.ref.toUpperCase()] = r; localStorage.setItem(STORE, JSON.stringify(db)); };
   const find = (ref,last) => { const r=getDB()[String(ref||'').trim().toUpperCase()]; return r && String(r.last).toLowerCase()===String(last||'').trim().toLowerCase() ? r : null; };
   const segKey = s => `${s.date}-DX${s.flightNo}-${s.from}-${s.to}`;
   const seat = (r,s,p=0) => { const m=r.seats?.[segKey(s)]; return m?.[p] || m?.[String(p)] || '—'; };
   const depDate = s => { const d=new Date(s.date+'T00:00:00'); d.setMinutes(Number(s.time)||0); return d; };
-  const eligibility = s => { const dep=depDate(s), now=new Date(window.SIM_TODAY || Date.now()); const open=new Date(dep-86400000), close=new Date(dep-2700000); if(now<open)return{ok:false,msg:'Check-in opens 24 hours before departure.'}; if(now>close)return{ok:false,msg:'Online check-in is closed for this flight.'}; return{ok:true,msg:'Check-in is open.'}; };
+  const eligibility = s => { const dep=depDate(s), now=SIM_NOW; const open=new Date(dep-86400000), close=new Date(dep-2700000); if(now<open)return{ok:false,msg:'Check-in opens 24 hours before departure.'}; if(now>close)return{ok:false,msg:'Online check-in is closed for this flight.'}; return{ok:true,msg:'Check-in is open.'}; };
   let lastRef='';
   if(typeof window.bookingReference==='function'){
     const original=window.bookingReference;
