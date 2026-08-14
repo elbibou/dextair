@@ -1,0 +1,42 @@
+name: Update Dextair simulation site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-sim-site.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update May 2037 simulation state and frequencies
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          changes = [
+              ('"DEN": 10', '"DEN": 14'),
+              ('"SDQ": 6', '"SDQ": 7'),
+              ("const SIM_TODAY = new Date('2037-04-30T12:00:00');", "const SIM_TODAY = new Date('2037-05-31T12:00:00');"),
+              ('As of April 2037, Dextair operates 92 revenue-active aircraft.', 'As of May 2037, Dextair operates 93 revenue-active aircraft.'),
+              ('<div class="fleet-total"><span>92</span><small>revenue-active aircraft</small></div>', '<div class="fleet-total"><span>93</span><small>revenue-active aircraft</small></div>'),
+              ('<div class="fleet-type">Airbus A321ceo</div><strong>4</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. Two more aircraft remain in the induction program.</p>', '<div class="fleet-type">Airbus A321ceo</div><strong>5</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. One final aircraft remains in the induction program for June 2037.</p>')
+          ]
+          for old, new in changes:
+              if old in s:
+                  s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit website update
+        run: |
+          git config user.name "Dextair Site Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Update SDQ and DEN frequencies for June 2037"
+          git push
