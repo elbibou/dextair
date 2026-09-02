@@ -966,15 +966,15 @@ main > section:first-child,
     <div>
       <p class="eyebrow red">THE DEXTAIR FLEET</p>
       <h2>Built for Florida, high-capacity leisure flying, and longer-range growth.</h2>
-      <p class="showcase-copy">As of May 2037, Dextair operates 93 revenue-active aircraft. The A321ceo is now part of the mainline fleet, adding 200-seat capacity on the busiest routes.</p>
+      <p class="showcase-copy">As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.</p>
     </div>
-    <div class="fleet-total"><span>93</span><small>revenue-active aircraft</small></div>
+    <div class="fleet-total"><span>94</span><small>revenue-active aircraft</small></div>
   </div>
 
   <div class="fleet-grid">
     <article class="fleet-card"><div class="fleet-type">Boeing 737 MAX 8</div><strong>17</strong><p>New-generation mainline flying across longer domestic, Canada and Caribbean routes.</p></article>
     <article class="fleet-card"><div class="fleet-type">Airbus A320neo</div><strong>18</strong><p>Efficient new-generation mainline aircraft with Dextair’s refreshed cabin.</p></article>
-    <article class="fleet-card capacity"><div class="fleet-type">Airbus A321ceo</div><strong>5</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. One final aircraft remains in the induction program for June 2037.</p></article>
+    <article class="fleet-card capacity"><div class="fleet-type">Airbus A321ceo</div><strong>6</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. All six aircraft are now active.</p></article>
     <article class="fleet-card"><div class="fleet-type">Boeing 737-800</div><strong>17</strong><p>Core mainline workhorse for domestic and selected international flying.</p></article>
     <article class="fleet-card"><div class="fleet-type">Airbus A320-200</div><strong>8</strong><p>Older-core mainline and relief flying across the network.</p></article>
     <article class="fleet-card heritage"><div class="fleet-type">Boeing 757-300 Heritage</div><strong>3</strong><p>228-seat specialized high-capacity transcontinental aircraft.</p></article>
@@ -1020,7 +1020,7 @@ const airportMap = Object.fromEntries(airports.map(a => [a.code, a]));
 const routeFreq = {"MCO": 70, "LGA": 45, "BOS": 45, "DCA": 42, "ORD": 42, "ATL": 35, "DFW": 14, "IAH": 14, "AUS": 7, "CLT": 14, "BNA": 14, "MSY": 14, "RDU": 14, "PHL": 14, "DTW": 14, "LAS": 28, "LAX": 10, "SFO": 10, "SAN": 7, "SEA": 4, "PDX": 4, "PHX": 10, "DEN": 14, "OKC": 4, "SAT": 7, "ABQ": 4, "MEM": 5, "SDF": 3, "GSP": 3, "RIC": 4, "BUF": 1, "CHS": 3, "MYR": 1, "ACY": 1, "JAN": 2, "STL": 14, "PIT": 14, "MSP": 14, "SAV": 7, "NAS": 6, "CUN": 6, "MBJ": 5, "PUJ": 6, "YYZ": 12, "YUL": 7, "SXM": 4, "HAV": 4, "TPA": 35, "JAX": 28, "TLH": 14, "EYW": 14, "SRQ": 21, "PNS": 14, "GNV": 14, "MLB": 21, "VPS": 21, "RSW": 21, "DAB": 14, "BHM": 4, "BTR": 2, "LFT": 1, "MOB": 1, "LIT": 3, "FPO": 4, "MCI": 7, "CRW": 4, "SLC": 5, "YVR": 4, "SDQ": 7};
 const SIM_START = new Date('2037-01-01T12:00:00');
 const SIM_END = new Date('2038-12-31T12:00:00');
-const SIM_TODAY = new Date('2037-05-31T12:00:00');
+const SIM_TODAY = new Date('2037-06-30T12:00:00');
 
 const INTERNATIONAL = new Set(airports.filter(a => a.type === 'international').map(a => a.code));
 
