@@ -14,29 +14,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Advance Dextair site to August 2037
+      - name: Build direct mobile-safe site
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
-          p = Path('site-original.html')
-          s = p.read_text()
-          s = s.replace("const SIM_TODAY = new Date('2037-06-30T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
-          s = s.replace("const SIM_TODAY = new Date('2037-05-31T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
-          s = s.replace('As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.', 'As of August 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are in service, adding 200-seat capacity on the busiest routes.', 1)
-          s = s.replace("LFT:['Embraer E190']", "LFT:['Embraer E175']", 1)
-          p.write_text(s)
-
-          idx = Path('index.html')
-          x = idx.read_text()
-          x = re.sub(r'/site-original\.html(?:\?v=[^"\']*)?', '/site-original.html?v=20370831', x)
-          idx.write_text(x)
+          src = Path('site-original.html').read_text()
+          src = src.replace("const SIM_TODAY = new Date('2037-06-30T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
+          src = src.replace("const SIM_TODAY = new Date('2037-05-31T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
+          src = src.replace('As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.', 'As of August 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are in service, adding 200-seat capacity on the busiest routes.', 1)
+          src = src.replace("LFT:['Embraer E190']", "LFT:['Embraer E175']", 1)
+          if 'viewport-fit=cover' not in src:
+              src = src.replace('content="width=device-width,initial-scale=1"', 'content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=yes"', 1)
+          addon = '\n<script src="/booking-checkin.js?v=20260902-2"></script>\n<script src="/mobile-responsive.js?v=20260902-2"></script>\n'
+          if '</body>' in src:
+              src = src.replace('</body>', addon + '</body>', 1)
+          else:
+              src += addon
+          Path('site-original.html').write_text(src)
+          Path('index.html').write_text(src)
           PY
-      - name: Commit website update
+      - name: Commit website repair
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add site-original.html index.html
-          git diff --cached --quiet || git commit -m "Advance Dextair website to August 2037"
+          git diff --cached --quiet || git commit -m "Serve Dextair directly without iframe on mobile"
           git push
