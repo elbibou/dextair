@@ -14,29 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Advance Dextair site to June 2037
+      - name: Assign E175 to Lafayette Shuttle
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path('site-original.html')
           s = p.read_text()
-          changes = [
-              ("const SIM_TODAY = new Date('2037-05-31T12:00:00');", "const SIM_TODAY = new Date('2037-06-30T12:00:00');"),
-              ('As of May 2037, Dextair operates 93 revenue-active aircraft. The A321ceo is now part of the mainline fleet, adding 200-seat capacity on the busiest routes.', 'As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.'),
-              ('<div class="fleet-total"><span>93</span><small>revenue-active aircraft</small></div>', '<div class="fleet-total"><span>94</span><small>revenue-active aircraft</small></div>'),
-              ('<div class="fleet-type">Airbus A321ceo</div><strong>5</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. One final aircraft remains in the induction program for June 2037.</p>', '<div class="fleet-type">Airbus A321ceo</div><strong>6</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. All six aircraft are now active.</p>')
-          ]
-          for old, new in changes:
-              if old not in s:
-                  print('Pattern not found:', old[:90])
-              s = s.replace(old, new, 1)
+          old = "LFT:['Embraer E190']"
+          new = "LFT:['Embraer E175']"
+          if old not in s:
+              raise SystemExit('LFT E190 assignment not found')
+          s = s.replace(old, new, 1)
           p.write_text(s)
 
           idx = Path('index.html')
           x = idx.read_text()
-          import re
-          x = re.sub(r'/site-original\.html(?:\?v=[^"\']*)?', '/site-original.html?v=20370630', x)
+          x = re.sub(r'/site-original\\.html(?:\\?v=[^\"\']*)?', '/site-original.html?v=20370701-lft175', x)
           idx.write_text(x)
           PY
       - name: Commit website update
@@ -44,5 +39,5 @@ jobs:
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add site-original.html index.html
-          git diff --cached --quiet || git commit -m "Advance Dextair website to June 2037"
+          git diff --cached --quiet || git commit -m "Use E175 on Lafayette Shuttle"
           git push
