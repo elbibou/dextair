@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Assign E175 to Lafayette Shuttle
+      - name: Advance Dextair site to August 2037
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -22,16 +22,15 @@ jobs:
 
           p = Path('site-original.html')
           s = p.read_text()
-          old = "LFT:['Embraer E190']"
-          new = "LFT:['Embraer E175']"
-          if old not in s:
-              raise SystemExit('LFT E190 assignment not found')
-          s = s.replace(old, new, 1)
+          s = s.replace("const SIM_TODAY = new Date('2037-06-30T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
+          s = s.replace("const SIM_TODAY = new Date('2037-05-31T12:00:00');", "const SIM_TODAY = new Date('2037-08-31T12:00:00');", 1)
+          s = s.replace('As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.', 'As of August 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are in service, adding 200-seat capacity on the busiest routes.', 1)
+          s = s.replace("LFT:['Embraer E190']", "LFT:['Embraer E175']", 1)
           p.write_text(s)
 
           idx = Path('index.html')
           x = idx.read_text()
-          x = re.sub(r'/site-original\\.html(?:\\?v=[^\"\']*)?', '/site-original.html?v=20370701-lft175', x)
+          x = re.sub(r'/site-original\.html(?:\?v=[^"\']*)?', '/site-original.html?v=20370831', x)
           idx.write_text(x)
           PY
       - name: Commit website update
@@ -39,5 +38,5 @@ jobs:
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add site-original.html index.html
-          git diff --cached --quiet || git commit -m "Use E175 on Lafayette Shuttle"
+          git diff --cached --quiet || git commit -m "Advance Dextair website to August 2037"
           git push
