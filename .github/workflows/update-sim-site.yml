@@ -14,29 +14,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update May 2037 simulation state and frequencies
+      - name: Advance Dextair site to June 2037
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('index.html')
+
+          p = Path('site-original.html')
           s = p.read_text()
           changes = [
-              ('"DEN": 10', '"DEN": 14'),
-              ('"SDQ": 6', '"SDQ": 7'),
-              ("const SIM_TODAY = new Date('2037-04-30T12:00:00');", "const SIM_TODAY = new Date('2037-05-31T12:00:00');"),
-              ('As of April 2037, Dextair operates 92 revenue-active aircraft.', 'As of May 2037, Dextair operates 93 revenue-active aircraft.'),
-              ('<div class="fleet-total"><span>92</span><small>revenue-active aircraft</small></div>', '<div class="fleet-total"><span>93</span><small>revenue-active aircraft</small></div>'),
-              ('<div class="fleet-type">Airbus A321ceo</div><strong>4</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. Two more aircraft remain in the induction program.</p>', '<div class="fleet-type">Airbus A321ceo</div><strong>5</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. One final aircraft remains in the induction program for June 2037.</p>')
+              ("const SIM_TODAY = new Date('2037-05-31T12:00:00');", "const SIM_TODAY = new Date('2037-06-30T12:00:00');"),
+              ('As of May 2037, Dextair operates 93 revenue-active aircraft. The A321ceo is now part of the mainline fleet, adding 200-seat capacity on the busiest routes.', 'As of June 2037, Dextair operates 94 revenue-active aircraft. All six A321ceos are now in service, adding 200-seat capacity on the busiest routes.'),
+              ('<div class="fleet-total"><span>93</span><small>revenue-active aircraft</small></div>', '<div class="fleet-total"><span>94</span><small>revenue-active aircraft</small></div>'),
+              ('<div class="fleet-type">Airbus A321ceo</div><strong>5</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. One final aircraft remains in the induction program for June 2037.</p>', '<div class="fleet-type">Airbus A321ceo</div><strong>6</strong><p>200 seats for YYZ, CUN, PUJ, SDQ, LAS and other high-demand flights. All six aircraft are now active.</p>')
           ]
           for old, new in changes:
-              if old in s:
-                  s = s.replace(old, new, 1)
+              if old not in s:
+                  print('Pattern not found:', old[:90])
+              s = s.replace(old, new, 1)
           p.write_text(s)
+
+          idx = Path('index.html')
+          x = idx.read_text()
+          import re
+          x = re.sub(r'/site-original\.html(?:\?v=[^"\']*)?', '/site-original.html?v=20370630', x)
+          idx.write_text(x)
           PY
       - name: Commit website update
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html
-          git diff --cached --quiet || git commit -m "Update SDQ and DEN frequencies for June 2037"
+          git add site-original.html index.html
+          git diff --cached --quiet || git commit -m "Advance Dextair website to June 2037"
           git push
