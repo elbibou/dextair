@@ -26,12 +26,7 @@ jobs:
               ', {"code": "CVG", "city": "Cincinnati", "country": "United States", "type": "mainline"}'
           )
           new_freqs = ', "CLE": 35, "CMH": 35, "IND": 35, "CVG": 35'
-          new_plans = """
-  CLE:['Boeing 737-800','Airbus A320-200','Airbus A320neo','Boeing 737 MAX 8','Boeing 737-800'],
-  CMH:['Airbus A320-200','Boeing 737-800','Airbus A320neo','Boeing 737 MAX 8','Airbus A320-200'],
-  IND:['Boeing 737-800','Airbus A320neo','Airbus A320-200','Boeing 737 MAX 8','Boeing 737-800'],
-  CVG:['Airbus A320-200','Boeing 737-800','Boeing 737 MAX 8','Airbus A320neo','Boeing 737-800']
-"""
+          new_plans = "\n  CLE:['Boeing 737-800','Airbus A320-200','Airbus A320neo','Boeing 737 MAX 8','Boeing 737-800'],\n  CMH:['Airbus A320-200','Boeing 737-800','Airbus A320neo','Boeing 737 MAX 8','Airbus A320-200'],\n  IND:['Boeing 737-800','Airbus A320neo','Airbus A320-200','Boeing 737 MAX 8','Boeing 737-800'],\n  CVG:['Airbus A320-200','Boeing 737-800','Boeing 737 MAX 8','Airbus A320neo','Boeing 737-800']\n"
 
           for name in ['index.html','site-original.html']:
               p = Path(name)
