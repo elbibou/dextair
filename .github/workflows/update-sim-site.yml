@@ -14,30 +14,54 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Advance site to January 2038
+      - name: Add Calgary service
         run: |
           python - <<'PY'
           from pathlib import Path
-          replacements = [
-            ("const SIM_TODAY = new Date('2037-12-31T12:00:00');", "const SIM_TODAY = new Date('2038-01-31T12:00:00');"),
-            ('As of December 2037, Dextair operates 94 revenue-active aircraft.', 'As of January 2038, Dextair operates 94 revenue-active aircraft.'),
-            ('Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout complete across all 17 aircraft, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
-            ('Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout complete across all 18 aircraft, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
-            ('Cabin refresh underway: 9 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 13 aircraft completed with improved seats, refreshed finishes and updated lighting.'),
-            ('Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 7 aircraft completed with improved seats, refreshed finishes and updated lighting.')
-          ]
+
+          airport_entry = ', {"code": "YYC", "city": "Calgary", "country": "Canada", "type": "international"}'
+          freq_entry = ', "YYC": 4'
+          plan_entry = "\n  YYC:['Airbus A321ceo','Airbus A321ceo','Airbus A321ceo','Airbus A321ceo']\n"
+
           for name in ['index.html','site-original.html']:
               p=Path(name)
               s=p.read_text()
-              for old,new in replacements:
-                  if old in s:
-                      s=s.replace(old,new,1)
+
+              if '"code": "YYC"' not in s:
+                  marker = '];\nconst airportMap = Object.fromEntries(airports.map(a => [a.code, a]));'
+                  if marker not in s:
+                      raise SystemExit(f'airport marker missing in {name}')
+                  s=s.replace(marker, airport_entry + marker, 1)
+
+              if '"YYC": 4' not in s:
+                  marker = '};\nconst SIM_START = new Date('
+                  if marker not in s:
+                      raise SystemExit(f'frequency marker missing in {name}')
+                  s=s.replace(marker, freq_entry + marker, 1)
+
+              start=s.index('const aircraftPlans = {')
+              end=s.index('\n};', start)
+              if 'YYC:[' not in s[start:end]:
+                  head=s[:end]
+                  sep='' if head.rstrip().endswith(',') else ','
+                  s=head + sep + plan_entry + s[end:]
+
+              s=s.replace("['LAX','SFO','SEA','PDX','SAN','YVR']", "['LAX','SFO','SEA','PDX','SAN','YVR','YYC']", 1)
+              s=s.replace("const mountain=new Set(['DEN','SLC','ABQ']);", "const mountain=new Set(['DEN','SLC','ABQ','YYC']);", 1)
+
+              gate = "  const m=date.getMonth()+1, day=date.getDate();\n"
+              launch = "  const m=date.getMonth()+1, day=date.getDate();\n  if(code==='YYC' && date < new Date('2038-02-01T12:00:00')) return 0;\n"
+              if "code==='YYC' && date < new Date('2038-02-01T12:00:00')" not in s:
+                  if gate not in s:
+                      raise SystemExit(f'weekly frequency marker missing in {name}')
+                  s=s.replace(gate, launch, 1)
+
               p.write_text(s)
           PY
-      - name: Commit January website update
+      - name: Commit Calgary route
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Advance Dextair website to January 2038"
+          git diff --cached --quiet || git commit -m "Launch FLL YYC four times weekly with A321"
           git push
