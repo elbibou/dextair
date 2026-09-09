@@ -14,21 +14,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Refresh connection booking scripts
+      - name: Advance site to December 2037
         run: |
           python - <<'PY'
           from pathlib import Path
+          replacements = [
+            ("const SIM_TODAY = new Date('2037-11-30T12:00:00');", "const SIM_TODAY = new Date('2037-12-31T12:00:00');"),
+            ('As of November 2037, Dextair operates 94 revenue-active aircraft.', 'As of December 2037, Dextair operates 94 revenue-active aircraft.'),
+            ('Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
+            ('Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
+            ('Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 9 aircraft completed with improved seats, refreshed finishes and updated lighting.'),
+            ('Cabin refresh underway: 3 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.')
+          ]
           for name in ['index.html','site-original.html']:
               p=Path(name)
               s=p.read_text()
-              s=s.replace('/partner-routing.js?v=20260908-1','/partner-routing.js?v=20260908-2')
-              s=s.replace('/booking-checkin.js?v=20260908-1','/booking-checkin.js?v=20260908-2')
+              for old,new in replacements:
+                  if old in s:
+                      s=s.replace(old,new,1)
               p.write_text(s)
           PY
-      - name: Commit cache refresh
+      - name: Commit December website update
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Refresh connection booking scripts"
+          git diff --cached --quiet || git commit -m "Advance Dextair website to December 2037"
           git push
