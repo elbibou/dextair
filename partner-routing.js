@@ -3,7 +3,6 @@
   // Partner sectors are marketed by Dextair and operated by American Airlines.
   const partnerAirports = [
     {code:'BWI',city:'Baltimore',country:'United States',duration:155,tz:0},
-    {code:'MKE',city:'Milwaukee',country:'United States',duration:190,tz:-60},
     {code:'SMF',city:'Sacramento',country:'United States',duration:335,tz:-180},
     {code:'SJC',city:'San Jose',country:'United States',duration:335,tz:-180},
     {code:'ORF',city:'Norfolk / Virginia Beach',country:'United States',duration:135,tz:0},
