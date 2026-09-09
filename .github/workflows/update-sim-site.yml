@@ -14,39 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Dextair and American connection booking
+      - name: Refresh connection booking scripts
         run: |
           python - <<'PY'
           from pathlib import Path
-
           for name in ['index.html','site-original.html']:
               p=Path(name)
               s=p.read_text()
-              s=s.replace("alert('Choose valid Dextair airports.')", "alert('Choose valid Dextair or partner airports.')")
-              old='<script src="/booking-checkin.js?v=20260902-2"></script>'
-              new='<script src="/partner-routing.js?v=20260908-1"></script>\n<script src="/booking-checkin.js?v=20260908-1"></script>'
-              if '/partner-routing.js' not in s:
-                  if old not in s:
-                      raise SystemExit(f'booking script marker missing in {name}')
-                  s=s.replace(old,new,1)
+              s=s.replace('/partner-routing.js?v=20260908-1','/partner-routing.js?v=20260908-2')
+              s=s.replace('/booking-checkin.js?v=20260908-1','/booking-checkin.js?v=20260908-2')
               p.write_text(s)
-
-          p=Path('booking-checkin.js')
-          s=p.read_text()
-          old="JSON.stringify({from:s.from,to:s.to,number:s.flightNo,time:s.time,duration:s.duration,aircraft:s.aircraft,heritage:s.heritage||false})"
-          new="JSON.stringify({from:s.from,to:s.to,number:s.flightNo,time:s.time,duration:s.duration,aircraft:s.aircraft,heritage:s.heritage||false,partner:s.partner||false,operator:s.operator||''})"
-          if old in s:
-              s=s.replace(old,new,1)
-          old="${fmtDate(s)} · ${fmt(s.time)} · ${s.aircraft}<br>${g.terminal}"
-          new="${fmtDate(s)} · ${fmt(s.time)} · ${s.aircraft}${s.operator?`<br><b>Operated by ${s.operator}${s.partnerFlightNo?` · AA ${s.partnerFlightNo}`:''}</b>`:''}<br>${g.terminal}"
-          if old in s:
-              s=s.replace(old,new,1)
-          p.write_text(s)
           PY
-      - name: Commit connection booking update
+      - name: Commit cache refresh
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html site-original.html booking-checkin.js
-          git diff --cached --quiet || git commit -m "Enable FLL connections and American partner itineraries"
+          git add index.html site-original.html
+          git diff --cached --quiet || git commit -m "Refresh connection booking scripts"
           git push
