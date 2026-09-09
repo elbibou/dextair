@@ -14,56 +14,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add four Midwest markets at five daily flights
+      - name: Install Dextair and American connection booking
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          new_airports = (
-              ', {"code": "CLE", "city": "Cleveland", "country": "United States", "type": "mainline"}'
-              ', {"code": "CMH", "city": "Columbus", "country": "United States", "type": "mainline"}'
-              ', {"code": "IND", "city": "Indianapolis", "country": "United States", "type": "mainline"}'
-              ', {"code": "CVG", "city": "Cincinnati", "country": "United States", "type": "mainline"}'
-          )
-          new_freqs = ', "CLE": 35, "CMH": 35, "IND": 35, "CVG": 35'
-          new_plans = "\n  CLE:['Boeing 737-800','Airbus A320-200','Airbus A320neo','Boeing 737 MAX 8','Boeing 737-800'],\n  CMH:['Airbus A320-200','Boeing 737-800','Airbus A320neo','Boeing 737 MAX 8','Airbus A320-200'],\n  IND:['Boeing 737-800','Airbus A320neo','Airbus A320-200','Boeing 737 MAX 8','Boeing 737-800'],\n  CVG:['Airbus A320-200','Boeing 737-800','Boeing 737 MAX 8','Airbus A320neo','Boeing 737-800']\n"
-
           for name in ['index.html','site-original.html']:
-              p = Path(name)
-              s = p.read_text()
-
-              if '"code": "CLE"' not in s:
-                  marker = '];\nconst airportMap = Object.fromEntries(airports.map(a => [a.code, a]));'
-                  if marker not in s:
-                      raise SystemExit(f'airport marker missing in {name}')
-                  s = s.replace(marker, new_airports + marker, 1)
-
-              if '"CLE": 35' not in s:
-                  marker = '};\nconst SIM_START = new Date('
-                  if marker not in s:
-                      raise SystemExit(f'route frequency marker missing in {name}')
-                  s = s.replace(marker, new_freqs + marker, 1)
-
-              start = s.index('const aircraftPlans = {')
-              end = s.index('\n};', start)
-              block = s[start:end]
-              if 'CLE:[' not in block:
-                  head = s[:end]
-                  sep = '' if head.rstrip().endswith(',') else ','
-                  s = head + sep + new_plans + s[end:]
-
-              s = s.replace(
-                  "['MCI','ORD','DTW','STL','PIT','IAH']",
-                  "['MCI','ORD','DTW','STL','PIT','IAH','CLE','CMH','IND','CVG']",
-                  1
-              )
-
+              p=Path(name)
+              s=p.read_text()
+              s=s.replace("alert('Choose valid Dextair airports.')", "alert('Choose valid Dextair or partner airports.')")
+              old='<script src="/booking-checkin.js?v=20260902-2"></script>'
+              new='<script src="/partner-routing.js?v=20260908-1"></script>\n<script src="/booking-checkin.js?v=20260908-1"></script>'
+              if '/partner-routing.js' not in s:
+                  if old not in s:
+                      raise SystemExit(f'booking script marker missing in {name}')
+                  s=s.replace(old,new,1)
               p.write_text(s)
+
+          p=Path('booking-checkin.js')
+          s=p.read_text()
+          old="JSON.stringify({from:s.from,to:s.to,number:s.flightNo,time:s.time,duration:s.duration,aircraft:s.aircraft,heritage:s.heritage||false})"
+          new="JSON.stringify({from:s.from,to:s.to,number:s.flightNo,time:s.time,duration:s.duration,aircraft:s.aircraft,heritage:s.heritage||false,partner:s.partner||false,operator:s.operator||''})"
+          if old in s:
+              s=s.replace(old,new,1)
+          old="${fmtDate(s)} · ${fmt(s.time)} · ${s.aircraft}<br>${g.terminal}"
+          new="${fmtDate(s)} · ${fmt(s.time)} · ${s.aircraft}${s.operator?`<br><b>Operated by ${s.operator}${s.partnerFlightNo?` · AA ${s.partnerFlightNo}`:''}</b>`:''}<br>${g.terminal}"
+          if old in s:
+              s=s.replace(old,new,1)
+          p.write_text(s)
           PY
-      - name: Commit new route launch
+      - name: Commit connection booking update
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Start CLE CMH IND and CVG five times daily"
+          git add index.html site-original.html booking-checkin.js
+          git diff --cached --quiet || git commit -m "Enable FLL connections and American partner itineraries"
           git push
