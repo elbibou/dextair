@@ -14,26 +14,61 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Advance site to November 2037 and cabin rollout
+      - name: Add four Midwest markets at five daily flights
         run: |
           python - <<'PY'
           from pathlib import Path
+
+          new_airports = (
+              ', {"code": "CLE", "city": "Cleveland", "country": "United States", "type": "mainline"}'
+              ', {"code": "CMH", "city": "Columbus", "country": "United States", "type": "mainline"}'
+              ', {"code": "IND", "city": "Indianapolis", "country": "United States", "type": "mainline"}'
+              ', {"code": "CVG", "city": "Cincinnati", "country": "United States", "type": "mainline"}'
+          )
+          new_freqs = ', "CLE": 35, "CMH": 35, "IND": 35, "CVG": 35'
+          new_plans = """
+  CLE:['Boeing 737-800','Airbus A320-200','Airbus A320neo','Boeing 737 MAX 8','Boeing 737-800'],
+  CMH:['Airbus A320-200','Boeing 737-800','Airbus A320neo','Boeing 737 MAX 8','Airbus A320-200'],
+  IND:['Boeing 737-800','Airbus A320neo','Airbus A320-200','Boeing 737 MAX 8','Boeing 737-800'],
+  CVG:['Airbus A320-200','Boeing 737-800','Boeing 737 MAX 8','Airbus A320neo','Boeing 737-800']
+"""
+
           for name in ['index.html','site-original.html']:
-              p=Path(name)
-              s=p.read_text()
-              s=s.replace("const SIM_TODAY = new Date('2037-10-31T12:00:00');", "const SIM_TODAY = new Date('2037-11-30T12:00:00');", 1)
-              s=s.replace('As of October 2037, Dextair operates 94 revenue-active aircraft.', 'As of November 2037, Dextair operates 94 revenue-active aircraft.', 1)
-              s=s.replace('200 seats for high-demand flying. Eco+ seatback entertainment rollout is underway, with 3 of 6 aircraft completed.', '200 seats for high-demand flying. Eco+ seatback entertainment is now installed fleetwide on all 6 aircraft.', 1)
-              s=s.replace('Flagship cabin rollout underway: extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 1)
-              s=s.replace('Flagship cabin rollout underway: extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 1)
-              s=s.replace('Receiving an upgraded cabin with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.', 1)
-              s=s.replace('Receiving an upgraded cabin with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 3 aircraft completed with improved seats, refreshed finishes and updated lighting.', 1)
+              p = Path(name)
+              s = p.read_text()
+
+              if '"code": "CLE"' not in s:
+                  marker = '];\nconst airportMap = Object.fromEntries(airports.map(a => [a.code, a]));'
+                  if marker not in s:
+                      raise SystemExit(f'airport marker missing in {name}')
+                  s = s.replace(marker, new_airports + marker, 1)
+
+              if '"CLE": 35' not in s:
+                  marker = '};\nconst SIM_START = new Date('
+                  if marker not in s:
+                      raise SystemExit(f'route frequency marker missing in {name}')
+                  s = s.replace(marker, new_freqs + marker, 1)
+
+              start = s.index('const aircraftPlans = {')
+              end = s.index('\n};', start)
+              block = s[start:end]
+              if 'CLE:[' not in block:
+                  head = s[:end]
+                  sep = '' if head.rstrip().endswith(',') else ','
+                  s = head + sep + new_plans + s[end:]
+
+              s = s.replace(
+                  "['MCI','ORD','DTW','STL','PIT','IAH']",
+                  "['MCI','ORD','DTW','STL','PIT','IAH','CLE','CMH','IND','CVG']",
+                  1
+              )
+
               p.write_text(s)
           PY
-      - name: Commit November website update
+      - name: Commit new route launch
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Advance Dextair website to November 2037"
+          git diff --cached --quiet || git commit -m "Start CLE CMH IND and CVG five times daily"
           git push
