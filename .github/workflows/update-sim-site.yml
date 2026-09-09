@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add fleet growth announcement
+      - name: Add used 737-800 acquisitions
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          old = 'As of March 2038, Dextair operates 94 revenue-active aircraft.'
-          new = 'As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, and two additional used Airbus A320neos have been acquired for induction into service in spring 2038.'
+          old = 'As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, and two additional used Airbus A320neos have been acquired for induction into service in spring 2038.'
+          new = 'As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, two additional used Airbus A320neos have been acquired for induction into service in spring 2038, and two used Boeing 737-800s have now been purchased for induction on lower-demand mainline flying.'
 
           for name in ['index.html','site-original.html']:
               p = Path(name)
@@ -31,10 +31,10 @@ jobs:
                   raise SystemExit(f'fleet summary marker missing in {name}')
               p.write_text(s)
           PY
-      - name: Commit fleet growth update
+      - name: Commit 737-800 acquisitions
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Add A321neo order and used A320neo acquisitions"
+          git diff --cached --quiet || git commit -m "Add two used 737-800 acquisitions"
           git push
