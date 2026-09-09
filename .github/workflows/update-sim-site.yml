@@ -14,26 +14,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add Calgary service
+      - name: Add Milwaukee mainline service
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          airport_entry = ', {"code": "YYC", "city": "Calgary", "country": "Canada", "type": "international"}'
-          freq_entry = ', "YYC": 4'
-          plan_entry = "\n  YYC:['Airbus A321ceo','Airbus A321ceo','Airbus A321ceo','Airbus A321ceo']\n"
+          airport_entry = ', {"code": "MKE", "city": "Milwaukee", "country": "United States", "type": "mainline"}'
+          freq_entry = ', "MKE": 14'
+          plan_entry = "\n  MKE:['Airbus A320-200','Boeing 737-800']\n"
 
           for name in ['index.html','site-original.html']:
               p=Path(name)
               s=p.read_text()
 
-              if '"code": "YYC"' not in s:
+              if '"code": "MKE"' not in s:
                   marker = '];\nconst airportMap = Object.fromEntries(airports.map(a => [a.code, a]));'
                   if marker not in s:
                       raise SystemExit(f'airport marker missing in {name}')
                   s=s.replace(marker, airport_entry + marker, 1)
 
-              if '"YYC": 4' not in s:
+              if '"MKE": 14' not in s:
                   marker = '};\nconst SIM_START = new Date('
                   if marker not in s:
                       raise SystemExit(f'frequency marker missing in {name}')
@@ -41,27 +41,28 @@ jobs:
 
               start=s.index('const aircraftPlans = {')
               end=s.index('\n};', start)
-              if 'YYC:[' not in s[start:end]:
+              if 'MKE:[' not in s[start:end]:
                   head=s[:end]
                   sep='' if head.rstrip().endswith(',') else ','
                   s=head + sep + plan_entry + s[end:]
 
-              s=s.replace("['LAX','SFO','SEA','PDX','SAN','YVR']", "['LAX','SFO','SEA','PDX','SAN','YVR','YYC']", 1)
-              s=s.replace("const mountain=new Set(['DEN','SLC','ABQ']);", "const mountain=new Set(['DEN','SLC','ABQ','YYC']);", 1)
+              s=s.replace("['YYZ','YUL','MSP','DFW','AUS','SAT','OKC','CUN','PUJ','SXM','MBJ','SDQ']", "['YYZ','YUL','MSP','DFW','AUS','SAT','OKC','CUN','PUJ','SXM','MBJ','SDQ','MKE']", 1)
+              s=s.replace("'JAN','OKC','SAT']);", "'JAN','OKC','SAT','MKE']);", 1)
 
               gate = "  const m=date.getMonth()+1, day=date.getDate();\n"
-              launch = "  const m=date.getMonth()+1, day=date.getDate();\n  if(code==='YYC' && date < new Date('2038-02-01T12:00:00')) return 0;\n"
-              if "code==='YYC' && date < new Date('2038-02-01T12:00:00')" not in s:
+              launch = "  const m=date.getMonth()+1, day=date.getDate();\n  if(code==='MKE' && date < new Date('2038-02-01T12:00:00')) return 0;\n"
+              if "code==='MKE' && date < new Date('2038-02-01T12:00:00')" not in s:
                   if gate not in s:
                       raise SystemExit(f'weekly frequency marker missing in {name}')
                   s=s.replace(gate, launch, 1)
 
+              s=s.replace('/partner-routing.js?v=20260908-2','/partner-routing.js?v=20260909-1')
               p.write_text(s)
           PY
-      - name: Commit Calgary route
+      - name: Commit Milwaukee route
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Launch FLL YYC four times weekly with A321"
+          git diff --cached --quiet || git commit -m "Launch FLL MKE twice daily"
           git push
