@@ -14,27 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add used 737-800 acquisitions
+      - name: Advance site to May 2038
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          old = 'As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, and two additional used Airbus A320neos have been acquired for induction into service in spring 2038.'
-          new = 'As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, two additional used Airbus A320neos have been acquired for induction into service in spring 2038, and two used Boeing 737-800s have now been purchased for induction on lower-demand mainline flying.'
+          replacements = [
+            ("const SIM_TODAY = new Date('2038-03-31T12:00:00');", "const SIM_TODAY = new Date('2038-05-31T12:00:00');"),
+            ('As of March 2038, Dextair operates 94 revenue-active aircraft. Eight Airbus A321neos are now on firm order for deliveries beginning in late 2039, two additional used Airbus A320neos have been acquired for induction into service in spring 2038, and two used Boeing 737-800s have now been purchased for induction on lower-demand mainline flying.', 'As of May 2038, Dextair operates 98 revenue-active aircraft. Eight Airbus A321neos remain on firm order for deliveries beginning in late 2039. Two used Airbus A320neos and two used Boeing 737-800s have completed induction and are now in revenue service.'),
+            ('<div class="fleet-total"><span>94</span><small>revenue-active aircraft</small></div>', '<div class="fleet-total"><span>98</span><small>revenue-active aircraft</small></div>'),
+            ('<article class="fleet-card"><div class="fleet-type">Airbus A320neo</div><strong>18</strong>', '<article class="fleet-card"><div class="fleet-type">Airbus A320neo</div><strong>20</strong>'),
+            ('<article class="fleet-card"><div class="fleet-type">Boeing 737-800</div><strong>17</strong>', '<article class="fleet-card"><div class="fleet-type">Boeing 737-800</div><strong>19</strong>')
+          ]
 
           for name in ['index.html','site-original.html']:
-              p = Path(name)
-              s = p.read_text()
-              if old in s:
-                  s = s.replace(old, new, 1)
-              elif new not in s:
-                  raise SystemExit(f'fleet summary marker missing in {name}')
+              p=Path(name)
+              s=p.read_text()
+              for old,new in replacements:
+                  if old in s:
+                      s=s.replace(old,new,1)
+                  elif new not in s:
+                      raise SystemExit(f'marker missing in {name}: {old[:80]}')
               p.write_text(s)
           PY
-      - name: Commit 737-800 acquisitions
+      - name: Commit May website update
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Add two used 737-800 acquisitions"
+          git diff --cached --quiet || git commit -m "Advance Dextair website to May 2038"
           git push
