@@ -1276,7 +1276,7 @@ function injectFlexibleDates(from,to,centerDate,containerId,leg){
 function syncReturnDateMin(){const d=document.getElementById('depart'),r=document.getElementById('return');if(!d||!r||!d.value)return;r.min=d.value;if(!r.value||r.value<d.value)r.value=d.value;}
 function showFlights(){
   const from=document.getElementById('from').value,to=document.getElementById('to').value,depVal=document.getElementById('depart').value,retVal=document.getElementById('return').value;
-  if(!from||!to||!airportMap[from]||!airportMap[to])return alert('Choose valid Dextair airports.'); if(from===to)return alert('Choose two different airports.'); if(!depVal)return alert('Choose a departure date.');
+  if(!from||!to||!airportMap[from]||!airportMap[to])return alert('Choose valid Dextair or partner airports.'); if(from===to)return alert('Choose two different airports.'); if(!depVal)return alert('Choose a departure date.');
   const depDate=new Date(depVal+'T12:00:00'); if(depDate<SIM_START||depDate>SIM_END)return alert('Choose a departure date within the simulation calendar.');
   if(tripType==='roundtrip'){if(!retVal)return alert('Choose a return date.');const retDate=new Date(retVal+'T12:00:00');if(retDate<depDate)return alert('Return date must be on or after departure.');if(retDate>SIM_END)return alert('Choose a return date within the simulation calendar.');}
   bookingState={from,to,departDate:depVal,returnDate:retVal,outbound:null,returnLeg:null,total:0,seats:{}};
@@ -1414,6 +1414,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </div>
 
 
-<script src="/booking-checkin.js?v=20260902-2"></script>
+<script src="/partner-routing.js?v=20260908-1"></script>
+<script src="/booking-checkin.js?v=20260908-1"></script>
 <script src="/mobile-responsive.js?v=20260902-2"></script>
 </body></html>
