@@ -14,17 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Advance site to December 2037
+      - name: Advance site to January 2038
         run: |
           python - <<'PY'
           from pathlib import Path
           replacements = [
-            ("const SIM_TODAY = new Date('2037-11-30T12:00:00');", "const SIM_TODAY = new Date('2037-12-31T12:00:00');"),
-            ('As of November 2037, Dextair operates 94 revenue-active aircraft.', 'As of December 2037, Dextair operates 94 revenue-active aircraft.'),
-            ('Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
-            ('Flagship cabin rollout underway: 9 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
-            ('Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 9 aircraft completed with improved seats, refreshed finishes and updated lighting.'),
-            ('Cabin refresh underway: 3 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.')
+            ("const SIM_TODAY = new Date('2037-12-31T12:00:00');", "const SIM_TODAY = new Date('2038-01-31T12:00:00');"),
+            ('As of December 2037, Dextair operates 94 revenue-active aircraft.', 'As of January 2038, Dextair operates 94 revenue-active aircraft.'),
+            ('Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout complete across all 17 aircraft, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
+            ('Flagship cabin rollout underway: 14 aircraft completed, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.', 'Flagship cabin rollout complete across all 18 aircraft, with extra-comfort seats, modern ambient lighting and a Florida beach-inspired interior blended with Dextair branding.'),
+            ('Cabin refresh underway: 9 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 13 aircraft completed with improved seats, refreshed finishes and updated lighting.'),
+            ('Cabin refresh underway: 5 aircraft completed with improved seats, refreshed finishes and updated lighting.', 'Cabin refresh underway: 7 aircraft completed with improved seats, refreshed finishes and updated lighting.')
           ]
           for name in ['index.html','site-original.html']:
               p=Path(name)
@@ -34,10 +34,10 @@ jobs:
                       s=s.replace(old,new,1)
               p.write_text(s)
           PY
-      - name: Commit December website update
+      - name: Commit January website update
         run: |
           git config user.name "Dextair Site Bot"
           git config user.email "actions@users.noreply.github.com"
           git add index.html site-original.html
-          git diff --cached --quiet || git commit -m "Advance Dextair website to December 2037"
+          git diff --cached --quiet || git commit -m "Advance Dextair website to January 2038"
           git push
