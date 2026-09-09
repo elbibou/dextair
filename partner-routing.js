@@ -51,6 +51,47 @@
     return s;
   };
 
+  // Keep same-day FLL connections, but also publish protected overnight options when
+  // the banks do not line up. This is especially important for west-to-Florida trips
+  // such as LAX -> FLL -> TPA, where the inbound transcon reaches FLL in the evening.
+  const originalBuildOptions = buildOptions;
+  buildOptions = function(from,to,date){
+    const options=originalBuildOptions(from,to,date);
+    if(from==='FLL'||to==='FLL') return options;
+
+    const nextDate=addDays(date,1);
+    if(nextDate>SIM_END) return options;
+    const firstTimes=timesFor(from,date,'in');
+    const secondTimes=timesFor(to,nextDate,'out');
+    const intl=INTERNATIONAL.has(from)||INTERNATIONAL.has(to);
+    const minConnect=intl?120:75;
+    const maxOvernight=900; // up to 15 hours, still sold as one protected itinerary
+    const overnight=[];
+
+    firstTimes.forEach((t1,i)=>{
+      const s1=makeSegment(from,'FLL',date,t1,i,'in');
+      const arr=arrivalRawMinutes(s1);
+      secondTimes.forEach((t2,j)=>{
+        const connection=(1440+t2)-arr;
+        if(connection<minConnect||connection>maxOvernight)return;
+        const s2=makeSegment('FLL',to,nextDate,t2,j,'out');
+        const p1=priceFor(from,date,i,'in',s1.aircraft);
+        const p2=priceFor(to,nextDate,j,'out',s2.aircraft);
+        overnight.push({
+          segments:[s1,s2],
+          connection,
+          overnightConnection:true,
+          totalMinutes:minutesFor(from)+connection+minutesFor(to),
+          price:Math.max(149,Math.round((p1+p2)*.84)),
+          label:'1 stop via FLL · overnight'
+        });
+      });
+    });
+
+    overnight.sort((a,b)=>a.connection-b.connection||a.price-b.price);
+    return [...options,...overnight.slice(0,3)];
+  };
+
   const originalSegmentHTML = segmentHTML;
   segmentHTML = function(s){
     let html=originalSegmentHTML(s);
@@ -88,14 +129,21 @@
   appendPartnerOptions();
 
   const style=document.createElement('style');
-  style.textContent=`.partner-operator{display:block;color:#6f7681;margin-top:4px;font-weight:800}.partner-tag{color:#1d4f91!important}.partner-note{background:#f2f6fb;border:1px solid #d9e4f2;border-radius:12px;padding:10px 12px;color:#31455f;font-size:12px;font-weight:800;margin:10px 0}`;
+  style.textContent=`.partner-operator{display:block;color:#6f7681;margin-top:4px;font-weight:800}.partner-tag{color:#1d4f91!important}.partner-note{background:#f2f6fb;border:1px solid #d9e4f2;border-radius:12px;padding:10px 12px;color:#31455f;font-size:12px;font-weight:800;margin:10px 0}.overnight-note{background:#fff8e8;border-color:#ead8a6;color:#6b5420}`;
   document.head.appendChild(style);
 
   const originalOptionHTML = optionHTML;
   optionHTML = function(opt,index,leg){
     let html=originalOptionHTML(opt,index,leg);
-    if(!opt.segments?.some(s=>s.partner)) return html;
-    return html.replace('<div class="result-top">','<div class="partner-note">Through-ticketed Dextair itinerary with an American Airlines-operated codeshare segment. Bags and connection protection carry through the reservation.</div><div class="result-top">');
+    if(opt.overnightConnection){
+      const h=Math.floor(opt.connection/60),m=opt.connection%60;
+      html=html.replace(`Connect at FLL · ${opt.connection} minutes`,`Overnight connection at FLL · ${h}h ${m}m · protected itinerary`);
+      html=html.replace('<div class="result-top">','<div class="partner-note overnight-note">This itinerary connects the following morning at FLL. The connection remains protected on one Dextair reservation.</div><div class="result-top">');
+    }
+    if(opt.segments?.some(s=>s.partner)){
+      html=html.replace('<div class="result-top">','<div class="partner-note">Through-ticketed Dextair itinerary with an American Airlines-operated codeshare segment. Bags and connection protection carry through the reservation.</div><div class="result-top">');
+    }
+    return html;
   };
 
   confirmationText = function(ref,first,last){
