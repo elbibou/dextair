@@ -966,7 +966,7 @@ main > section:first-child,
     <div>
       <p class="eyebrow red">THE DEXTAIR FLEET</p>
       <h2>Built for Florida, high-capacity leisure flying, and longer-range growth.</h2>
-      <p class="showcase-copy">As of May 2038, Dextair operates 98 revenue-active aircraft. Starting June 1, Dextair serves Mexico City four times weekly with A320neo primary and MAX 8 backup. Recently acquired A320neos and 737-800s now support busy routes, with existing A320-200s shifted toward lighter routes. Eight Airbus A321neos remain on firm order for deliveries beginning in late 2039. Two used Airbus A320neos and two used Boeing 737-800s have completed induction and are now in revenue service. All six A321ceos are in service, adding 200-seat capacity on the busiest routes.</p>
+      <p class="showcase-copy">As of May 2038, Dextair operates 98 revenue-active aircraft. Starting June 1, West Coast connectivity grows to 12 weekly flights each for LAX and SFO, 8 for SAN, 5 each for SEA and YVR, with approximately 4% lower West Coast economy base fares. Starting June 1, Dextair serves Mexico City four times weekly with A320neo primary and MAX 8 backup. Recently acquired A320neos and 737-800s now support busy routes, with existing A320-200s shifted toward lighter routes. Eight Airbus A321neos remain on firm order for deliveries beginning in late 2039. Two used Airbus A320neos and two used Boeing 737-800s have completed induction and are now in revenue service. All six A321ceos are in service, adding 200-seat capacity on the busiest routes.</p>
     </div>
     <div class="fleet-total"><span>98</span><small>revenue-active aircraft</small></div>
   </div>
@@ -1102,6 +1102,7 @@ function bindAirportFilter(inputId,selectId){
 function weeklyFrequency(code,date){
   let weekly=routeFreq[code]||0;
   const m=date.getMonth()+1, day=date.getDate();
+  if(date >= new Date('2038-06-01T12:00:00')){const westGrowth={LAX:12,SFO:12,SAN:8,SEA:5,YVR:5};if(westGrowth[code])weekly=westGrowth[code];}
   if(code==='MEX' && date < new Date('2038-06-01T12:00:00')) return 0;
   if(code==='MKE' && date < new Date('2038-02-01T12:00:00')) return 0;
   if(code==='YYC' && date < new Date('2038-02-01T12:00:00')) return 0;
@@ -1224,6 +1225,7 @@ function priceFor(code,date,index,direction,aircraft){
   const dur=minutesFor(code); let price=(54+dur*.58)*dateDemandFactor(code,date)*advanceFactor(date)*routeMarketFactor(code);
   const time=timesFor(code,date,direction)[index]??540;
   if(time<420||time>1140)price*=.93; else if(time>=660&&time<=900)price*=1.05;
+  if(date >= new Date('2038-06-01T12:00:00') && ['LAX','SFO','SAN','SEA','YVR','PDX'].includes(code))price*=.96;
   if(isHeritage(aircraft))price+=22;
   const noise=(hashString(code+dateISO(date)+index+direction)%19)-9;
   return Math.max(69,Math.round(price+noise));
