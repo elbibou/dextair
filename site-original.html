@@ -966,7 +966,7 @@ main > section:first-child,
     <div>
       <p class="eyebrow red">THE DEXTAIR FLEET</p>
       <h2>Built for Florida, high-capacity leisure flying, and longer-range growth.</h2>
-      <p class="showcase-copy">As of July 2038, Dextair operates 98 revenue-active aircraft. The June West Coast expansion now provides 12 weekly flights each to Los Angeles and San Francisco, 8 to San Diego, 5 each to Seattle and Vancouver, with approximately 4% lower West Coast economy base fares. Mexico City service launched June 1 at four weekly A320neo flights and reached an 81% modeled July load factor. Recently acquired A320neos and 737-800s support busier routes, while older A320-200s cover lighter flying. Eight Airbus A321neos remain on firm order with first deliveries planned for late 2039. All six A321ceos remain in service.</p>
+      <p class="showcase-copy">As of July 2038, Dextair operates 98 revenue-active aircraft. From August 2038, the Tuesday and Sunday Vancouver round trips are scheduled with the 228-seat Boeing 757-300 Heritage. The June West Coast expansion now provides 12 weekly flights each to Los Angeles and San Francisco, 8 to San Diego, 5 each to Seattle and Vancouver, with approximately 4% lower West Coast economy base fares. Mexico City service launched June 1 at four weekly A320neo flights and reached an 81% modeled July load factor. Recently acquired A320neos and 737-800s support busier routes, while older A320-200s cover lighter flying. Eight Airbus A321neos remain on firm order with first deliveries planned for late 2039. All six A321ceos remain in service.</p>
     </div>
     <div class="fleet-total"><span>98</span><small>revenue-active aircraft</small></div>
   </div>
@@ -1186,6 +1186,8 @@ function scheduledAircraft(code,date,index,direction){
   const plan=aircraftPlans[code]||['Boeing 737-800','Airbus A320-200'];
   const dow=weekdayIndex(date);
   // Published aircraft type is paired across the outbound and return rotation.
+  // Two of five YVR round trips move to the 757-300 Heritage from August 2038.
+  if(code==='YVR' && date>=new Date('2038-08-01T12:00:00') && (dow===1||dow===6)) return 'Boeing 757-300';
   if((code==='LAX'||code==='SFO') && ((dow+index)%3===0)) return 'Boeing 757-300';
   if(code==='PDX') return ((dow+index)%4===0)?'Boeing 757-300':'Boeing 737-800';
   if(shouldUseA321(code,date,index)) return 'Airbus A321ceo';
