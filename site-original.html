@@ -966,7 +966,7 @@ main > section:first-child,
     <div>
       <p class="eyebrow red">THE DEXTAIR FLEET</p>
       <h2>Built for Florida, high-capacity leisure flying, and longer-range growth.</h2>
-      <p class="showcase-copy">As of July 2038, Dextair operates 98 revenue-active aircraft. From August 2038, the Tuesday and Sunday Vancouver round trips are scheduled with the 228-seat Boeing 757-300 Heritage. The June West Coast expansion now provides 12 weekly flights each to Los Angeles and San Francisco, 8 to San Diego, 5 each to Seattle and Vancouver, with approximately 4% lower West Coast economy base fares. Mexico City service launched June 1 at four weekly A320neo flights and reached an 81% modeled July load factor. Recently acquired A320neos and 737-800s support busier routes, while older A320-200s cover lighter flying. Eight Airbus A321neos remain on firm order with first deliveries planned for late 2039. All six A321ceos remain in service.</p>
+      <p class="showcase-copy">As of July 2038, Dextair operates 98 revenue-active aircraft. From August 1 to October 29, Lafayette and Mobile Shuttle services increase from one to three weekly departures each as a 90-day trial. Shuttle schedules are retimed around morning and evening Fort Lauderdale connection banks. From August 2038, the Tuesday and Sunday Vancouver round trips are scheduled with the 228-seat Boeing 757-300 Heritage. The June West Coast expansion now provides 12 weekly flights each to Los Angeles and San Francisco, 8 to San Diego, 5 each to Seattle and Vancouver, with approximately 4% lower West Coast economy base fares. Mexico City service launched June 1 at four weekly A320neo flights and reached an 81% modeled July load factor. Recently acquired A320neos and 737-800s support busier routes, while older A320-200s cover lighter flying. Eight Airbus A321neos remain on firm order with first deliveries planned for late 2039. All six A321ceos remain in service.</p>
     </div>
     <div class="fleet-total"><span>98</span><small>revenue-active aircraft</small></div>
   </div>
@@ -1103,6 +1103,8 @@ function weeklyFrequency(code,date){
   let weekly=routeFreq[code]||0;
   const m=date.getMonth()+1, day=date.getDate();
   if(date >= new Date('2038-06-01T12:00:00')){const westGrowth={LAX:12,SFO:12,SAN:8,SEA:5,YVR:5};if(westGrowth[code])weekly=westGrowth[code];}
+  // 90-day thin-market Shuttle trial; revert automatically after October 29 pending CEO review.
+  if((code==='LFT'||code==='MOB') && date>=new Date('2038-08-01T12:00:00') && date<new Date('2038-10-30T12:00:00')) return 3;
   if(code==='MEX' && date < new Date('2038-06-01T12:00:00')) return 0;
   if(code==='MKE' && date < new Date('2038-02-01T12:00:00')) return 0;
   if(code==='YYC' && date < new Date('2038-02-01T12:00:00')) return 0;
@@ -1133,6 +1135,18 @@ function timesFor(code,date,direction='out'){
   const n=dayFlights(code,date); if(!n)return [];
   let times=(timePatterns[n]||timePatterns[1]).slice();
   const dur=minutesFor(code);
+  // Shuttle connection bank retiming starts August 1, 2038. Times are origin-local.
+  // Inbound banks feed later morning/evening mainline flights; outward banks connect inbound mainline.
+  const shuttle=new Set(['TPA','JAX','TLH','EYW','SRQ','PNS','GNV','MLB','VPS','RSW','DAB','BHM','BTR','LFT','MOB','LIT','FPO','CRW']);
+  if(shuttle.has(code) && date>=new Date('2038-08-01T12:00:00')){
+    const central=new Set(['PNS','VPS','BHM','BTR','LFT','MOB','LIT']);
+    const long=dur>100;
+    const firstInbound=long?(central.has(code)?345:420):375;
+    const inboundByCount={1:[firstInbound],2:[firstInbound,830],3:[firstInbound,700,835],4:[firstInbound,460,795,925],5:[firstInbound,460,630,795,925]};
+    const outboundByCount={1:[835],2:[835,1140],3:[805,1080,1200],4:[805,910,1080,1200],5:[805,890,1010,1125,1230]};
+    const schedule=direction==='in'?(inboundByCount[n]||times):(outboundByCount[n]||times);
+    return schedule.slice();
+  }
   // Published local departure pattern. Long routes get earlier FLL departures and midday/afternoon returns.
   if(n===1 && dur>=260) times=[480];
   if(n===1 && dur>=170 && dur<260) times=[525];
