@@ -966,7 +966,7 @@ main > section:first-child,
     <div>
       <p class="eyebrow red">THE DEXTAIR FLEET</p>
       <h2>Built for Florida, high-capacity leisure flying, and longer-range growth.</h2>
-      <p class="showcase-copy">As of November 19, 2038, Dextair operates 98 revenue-active aircraft. Fort Lauderdale Terminal 5-A has opened with 10 new gates, including 7 Dextair-preferred positions. The new Dextair × Disney “Magic Takes Flight” A320neo in signature red and gold has been unveiled, while the three Boeing 757-300 Heritage aircraft retain polished chrome fuselages, Florida flags and original retro-themed liveries. The Lafayette and Mobile frequency trials ended October 29 and both returned to one round trip weekly on October 30 pending the CEO's next decision. Shuttle connection-bank retiming remains in effect. Vancouver continues with two weekly 757-300 rotations; Los Angeles and San Francisco operate 12 weekly flights each, San Diego 8, and Seattle and Vancouver 5 each. Mexico City remains at four weekly flights. Eight A321neos remain on firm order for delivery beginning late 2039.</p>
+      <p class="showcase-copy">As of November 19, 2038, Dextair operates 98 revenue-active aircraft. Fort Lauderdale Terminal 5-A has opened with 10 new gates, including 7 Dextair-preferred positions. The new Dextair × Disney “Magic Takes Flight” A320neo in signature red and gold has been unveiled, while the three Boeing 757-300 Heritage aircraft retain polished chrome fuselages, Florida flags and original retro-themed liveries. Following the completed Lafayette and Mobile trials, both routes returned briefly to one weekly round trip from October 30 through November 19; effective November 20, 2038, both permanently operate three weekly round trips (Monday, Friday, Sunday), using E175 for Lafayette and E190 for Mobile. Shuttle connection-bank retiming remains in effect. Vancouver continues with two weekly 757-300 rotations; Los Angeles and San Francisco operate 12 weekly flights each, San Diego 8, and Seattle and Vancouver 5 each. Mexico City remains at four weekly flights. Eight A321neos remain on firm order for delivery beginning late 2039.</p>
     </div>
     <div class="fleet-total"><span>98</span><small>revenue-active aircraft</small></div>
   </div>
@@ -1103,7 +1103,8 @@ function weeklyFrequency(code,date){
   let weekly=routeFreq[code]||0;
   const m=date.getMonth()+1, day=date.getDate();
   if(date >= new Date('2038-06-01T12:00:00')){const westGrowth={LAX:12,SFO:12,SAN:8,SEA:5,YVR:5};if(westGrowth[code])weekly=westGrowth[code];}
-  // 90-day thin-market Shuttle trial; revert automatically after October 29 pending CEO review.
+  // Trial operated Aug 1–Oct 29; CEO approved permanent three-weekly LFT/MOB flying from Nov 20, 2038.
+  if((code==='LFT'||code==='MOB') && date>=new Date('2038-11-20T12:00:00')) return 3;
   if((code==='LFT'||code==='MOB') && date>=new Date('2038-08-01T12:00:00') && date<new Date('2038-10-30T12:00:00')) return 3;
   if(code==='MEX' && date < new Date('2038-06-01T12:00:00')) return 0;
   if(code==='MKE' && date < new Date('2038-02-01T12:00:00')) return 0;
